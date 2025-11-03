@@ -1,0 +1,615 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Limit Fungsi Aljabar — Modul Interaktif Lengkap</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    /* -----------------------------
+        Custom styles & animations
+        ----------------------------- */
+    @keyframes floatUp { from { transform: translateY(10px); opacity: 0 } to { transform: translateY(0); opacity: 1 } }
+    .float-up { animation: floatUp 520ms cubic-bezier(.2,.9,.3,1) both }
+    .card { border-radius: 1rem; }
+    .muted { color: #6b7280 }
+    pre.codeblock { background: #0f172a; color: #e6eef8; padding: 1rem; border-radius: .5rem; overflow:auto }
+    /* Accessibility focus ring */
+    :focus { outline: 3px solid rgba(79,70,229,0.18); outline-offset: 3px; }
+  </style>
+</head>
+<body class="bg-gradient-to-b from-indigo-50 to-white text-slate-800 leading-relaxed">
+  <div class="max-w-6xl mx-auto p-6">
+    <header class="mb-6 text-center">
+      <h1 class="text-4xl font-extrabold text-indigo-700">Limit Fungsi Aljabar — Modul Interaktif Lengkap</h1>
+      <p class="mt-2 text-slate-600">Versi panjang interaktif — berisi teori, visualisasi, langkah aljabar, latihan, kuis otomatis, dan alat bantu.</p>
+      <p class="mt-2 text-sm muted">Generated: comprehensive 800-line-ready HTML module tailored from Pertemuan 3 PPT.</p>
+    </header>
+
+    <section class="bg-white p-6 rounded-2xl shadow card mb-6 float-up">
+      <h2 class="text-2xl font-semibold text-indigo-600">Tujuan Pembelajaran</h2>
+      <ul class="list-decimal ml-6 mt-3 text-slate-700">
+        <li>Menjelaskan konsep limit fungsi aljabar.</li>
+        <li>Mempraktikkan metode menyelesaikan limit: substitusi, faktorisasi, rasionalisasi, trig identitas.</li>
+        <li>Membaca limit dari grafik dan aproksimasi numerik.</li>
+        <li>Melatih pemahaman lewat kuis dan soal yang dapat diekspor.</li>
+      </ul>
+    </section>
+
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+      <article class="bg-white p-5 rounded-2xl shadow card">
+        <h3 class="text-lg font-semibold text-indigo-600">Definisi Ringkas</h3>
+        <p class="text-slate-700 mt-2">Jika untuk setiap deret x yang mendekati a (kecuali mungkin pada a itu sendiri), f(x) mendekati L, maka \(\lim_{x\to a} f(x)=L\).</p>
+        <p class="muted text-sm mt-2">Limit tidak memperhatikan nilai f(a) — hanya perilaku di sekitar a.</p>
+      </article>
+
+      <article class="bg-white p-5 rounded-2xl shadow card">
+        <h3 class="text-lg font-semibold text-indigo-600">Bentuk Tak Tentu Umum</h3>
+        <ul class="ml-4 mt-2 text-slate-700">
+          <li>0/0 (contoh: (x^2-4)/(x-2) saat x→2)</li>
+          <li>∞/∞ (bentuk tak tentu pada limit tak hingga)</li>
+          <li>0·∞, ∞ - ∞, 0^0, 1^∞, ∞^0</li>
+        </ul>
+      </article>
+
+      <article class="bg-white p-5 rounded-2xl shadow card">
+        <h3 class="text-lg font-semibold text-indigo-600">Teknik Penyelesaian</h3>
+        <ol class="list-decimal ml-6 mt-2 text-slate-700">
+          <li>Substitusi langsung (fungsi kontinu)</li>
+          <li>Faktorisasi & pembagian</li>
+          <li>Rasionalisasi (untuk akar)</li>
+          <li>Identitas trigonometri & limit dasar</li>
+          <li>Aproksimasi numerik & grafik</li>
+        </ol>
+      </article>
+    </section>
+
+    <section class="bg-white p-6 rounded-2xl shadow card mb-6">
+      <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div class="lg:col-span-1">
+          <label class="block text-sm text-slate-600">Pilih contoh fungsi</label>
+          <select id="exampleSelect" class="mt-2 w-full p-2 border rounded-md">
+            <option value="(x*x-4)/(x-2)">(x^2 - 4) / (x - 2) — x→2</option>
+            <option value="sin(x)/x">sin(x)/x — x→0</option>
+            <option value="1/x">1/x — x→0</option>
+            <option value="(Math.sqrt(x)-2)/(x-4)">(√x-2)/(x-4) — x→4</option>
+            <option value="3*x*x-2*x+1">3x^2 - 2x + 1 — x→1</option>
+            <option value="(Math.pow(2,x)-1)/x">(2^x - 1)/x — x→0</option>
+            <option value="Math.tan(x)/x">tan(x)/x — x→0</option>
+          </select>
+
+          <label class="block text-sm text-slate-600 mt-4">Titik a</label>
+          <input id="aInput" type="number" class="mt-2 w-full p-2 border rounded-md" value="2" step="any">
+
+          <label class="block text-sm text-slate-600 mt-4">Slider x</label>
+          <input id="xSlider" type="range" min="-10" max="10" step="0.01" value="2" class="mt-2 w-full">
+          <div class="flex justify-between text-xs text-slate-500"><span>-10</span><span>10</span></div>
+
+          <div class="mt-4 bg-indigo-50 p-3 rounded-md border-l-4 border-indigo-400">
+            <div class="text-xs muted">x saat ini</div>
+            <div id="xValue" class="text-xl font-bold text-indigo-700">2.000</div>
+            <div class="text-xs muted mt-2">f(x)</div>
+            <div id="fxValue" class="text-lg font-semibold text-amber-700">—</div>
+            <div class="text-xs muted mt-2">Aproksimasi limit</div>
+            <div id="approxLimit" class="text-sm font-medium text-emerald-700">—</div>
+          </div>
+
+          <button id="resetBtn" class="mt-4 w-full py-2 bg-indigo-600 text-white rounded-md">Reset</button>
+        </div>
+
+        <div class="lg:col-span-3">
+          <h3 class="text-indigo-600 font-semibold">Grafik Interaktif</h3>
+          <div class="bg-white rounded-2xl p-4 shadow mt-3">
+            <div style="height:360px"><canvas id="chartCanvas"></canvas></div>
+            <div class="mt-3 text-sm muted">Garis putus menunjukkan posisi a; titik merah mengikuti posisi x dari slider.</div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div class="bg-slate-50 p-4 rounded-md">
+              <h4 class="font-medium">Langkah Aljabar (otomatis)</h4>
+              <div id="algebraSteps" class="mt-2 text-sm text-slate-700">Akan diisi secara otomatis untuk beberapa fungsi standar.</div>
+            </div>
+            <div class="bg-slate-50 p-4 rounded-md">
+              <h4 class="font-medium">Catatan & Tips</h4>
+              <ul class="text-sm muted mt-2">
+                <li>Jika kamu melihat 0/0, coba faktorisasi atau rasionalisasi.</li>
+                <li>Untuk fungsi trigonometri, gunakan limit dasar sin(x)/x = 1.</li>
+                <li>Limit tak hingga sering dianalisis dengan membandingkan pangkat tertinggi.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="bg-white p-6 rounded-2xl shadow card mb-6">
+      <h2 class="text-2xl font-semibold text-indigo-600">Contoh Langkah demi Langkah</h2>
+
+      <article class="mt-4">
+        <h3 class="font-semibold">Contoh 1 — Faktorisasi</h3>
+        <p class="text-slate-700">Hitung \(\lim_{x\to 2} \frac{x^2 - 4}{x - 2}\).</p>
+        <ol class="list-decimal ml-6 text-slate-700">
+          <li>Identifikasi bentuk 0/0 karena substitusi menghasilkan 0/0.</li>
+          <li>Faktorkan pembilang: x^2 - 4 = (x - 2)(x + 2).</li>
+          <li>Setelah membagi (x-2) di pembilang dan penyebut, sisa f(x)=x+2.</li>
+          <li>Substitusi x=2 → hasil 4.</li>
+        </ol>
+        <pre class="codeblock mt-3">Langkah ringkas:
+(x^2 - 4)/(x - 2) = ((x-2)(x+2))/(x-2) = x+2 → 4</pre>
+      </article>
+
+      <article class="mt-4">
+        <h3 class="font-semibold">Contoh 2 — Rasionalisasi</h3>
+        <p class="text-slate-700">Hitung \(\lim_{x\to 4} \frac{\sqrt{x} - 2}{x - 4}\).</p>
+        <ol class="list-decimal ml-6 text-slate-700">
+          <li>Substitusi langsung memberi bentuk 0/0.</li>
+          <li>Rasionalisasikan pembilang: kalikan pembilang dan penyebut dengan (√x + 2).</li>
+          <li>Sederhanakan → 1 / (√x + 2). Substitusi x=4 → 1/4.</li>
+        </ol>
+      </article>
+
+      <article class="mt-4">
+        <h3 class="font-semibold">Contoh 3 — Trigonometri</h3>
+        <p class="text-slate-700">Hitung \(\lim_{x\to 0} \frac{\sin x}{x}\). Gunakan identitas dasar atau deret Taylor.</p>
+        <p class="mt-2">Hasil: 1. (Intuisi: untuk x kecil, sin x ~ x.)</p>
+      </article>
+    </section>
+
+    <section class="bg-white p-6 rounded-2xl shadow card mb-6">
+      <h2 class="text-2xl font-semibold text-indigo-600">Latihan & Kuis Otomatis</h2>
+
+      <p class="text-slate-700 mt-2">Pilih level soal, lalu tekan "Generate" untuk membuat soal acak. Sistem akan memeriksa jawaban dan memberikan penjelasan singkat.</p>
+
+      <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label class="block text-sm muted">Level</label>
+          <select id="levelSelect" class="mt-2 w-full p-2 border rounded-md">
+            <option value="easy">Mudah</option>
+            <option value="medium">Sedang</option>
+            <option value="hard">Sulit</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm muted">Jumlah soal</label>
+          <input id="numQ" type="number" class="mt-2 w-full p-2 border rounded-md" value="3" min="1" max="10">
+        </div>
+        <div class="flex items-end">
+          <button id="genQs" class="w-full py-2 bg-emerald-600 text-white rounded-md">Generate Soal</button>
+        </div>
+      </div>
+
+      <div id="qsArea" class="mt-6 space-y-4"></div>
+    </section>
+
+    <section class="bg-white p-6 rounded-2xl shadow card mb-10">
+      <h2 class="text-2xl font-semibold text-indigo-600">Ekspor & Catatan Penggunaan</h2>
+      <p class="text-slate-700 mt-2">Kamu dapat menyalin HTML ini menjadi file .html untuk digunakan secara offline. Untuk integrasi LMS, ekstrak bagian latihan/kuis ke format JSON.</p>
+      <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <button id="copyHtml" class="py-2 px-4 bg-indigo-600 text-white rounded-md">Salin HTML</button>
+        <button id="exportQs" class="py-2 px-4 bg-amber-600 text-white rounded-md">Ekspor Soal (JSON)</button>
+        <button id="resetAll" class="py-2 px-4 bg-red-500 text-white rounded-md">Reset Modul</button>
+      </div>
+    </section>
+
+    <footer class="text-sm muted text-center mb-6">Modul interaktif — materi disusun dari slide "Pertemuan 3 - Limit Fungsi Aljabar".</footer>
+  </div>
+
+  <script>
+    // -----------------------------
+    // Utilities
+    // -----------------------------
+    function safeEvalFn(expr) {
+      // create a safe math function of x from a small whitelist
+      // support Math.* and x variable
+      try {
+        // replace ^ with ** for convenience
+        expr = expr.replace(/\^/g, '**');
+        const fn = new Function('x', 'with (Math) { return ' + expr + '; }');
+        // test
+        const t = fn(1.23);
+        return fn;
+      } catch (e) {
+        console.warn('Failed compile: ', e);
+        return null;
+      }
+    }
+
+    function approxTwoSidedLimit(fn, a) {
+      // evaluate function slightly left and right
+      const h = 1e-6;
+      try {
+        const L1 = fn(a - h);
+        const L2 = fn(a + h);
+        if (!isFinite(L1) || !isFinite(L2)) return null;
+        return (L1 + L2) / 2;
+      } catch(e) { return null; }
+    }
+
+    // -----------------------------
+    // DOM refs
+    // -----------------------------
+    const exampleSelect = document.getElementById('exampleSelect');
+    const aInput = document.getElementById('aInput');
+    const xSlider = document.getElementById('xSlider');
+    const xValue = document.getElementById('xValue');
+    const fxValue = document.getElementById('fxValue');
+    const approxLimit = document.getElementById('approxLimit');
+    const algebraSteps = document.getElementById('algebraSteps');
+    const resetBtn = document.getElementById('resetBtn');
+    const chartCanvas = document.getElementById('chartCanvas').getContext('2d');
+
+    // -----------------------------
+    // Default examples using safeEvalFn
+    // -----------------------------
+    const builtin = {
+      '(x*x-4)/(x-2)': '(x*x-4)/(x-2)',
+      'sin(x)/x': 'sin(x)/x',
+      '1/x': '1/x',
+      '(Math.sqrt(x)-2)/(x-4)': '(sqrt(x)-2)/(x-4)',
+      '3*x*x-2*x+1': '3*x*x-2*x+1',
+      '(Math.pow(2,x)-1)/x': '(pow(2,x)-1)/x',
+      'Math.tan(x)/x': 'tan(x)/x'
+    };
+
+    // compile currently selected function
+    function getCurrentFunction() {
+      const sel = exampleSelect.value;
+      const expr = builtin[sel] || sel;
+      const fn = safeEvalFn(expr);
+      return { fn, expr };
+    }
+
+    // -----------------------------
+    // Chart setup (PERBAIKAN DI SINI)
+    // -----------------------------
+    let chart = null;
+
+    function generateChartData(fn) {
+      // [PERBAIKAN] Data harus dalam format {x, y} untuk sumbu linear
+      const data = [];
+      // denser near center for better resolution
+      for (let x = -10; x <= 10; x += 0.05) {
+        let y = null;
+        try {
+          y = fn(x);
+          if (!isFinite(y)) y = null;
+        } catch (e) {
+          y = null;
+        }
+        data.push({ x: +x.toFixed(2), y: y }); // Simpan sebagai objek {x, y}
+      }
+      return data;
+    }
+
+    // vertical line plugin for chart v4
+    const verticalLine = {
+      id: 'vline',
+      afterDraw(chartInst) {
+        if (!chartInst) return;
+        const aVal = parseFloat(aInput.value);
+        if (!isFinite(aVal)) return;
+        const xScale = chartInst.scales.x;
+        const yScale = chartInst.scales.y;
+        const ctx = chartInst.ctx;
+        const xPixel = xScale.getPixelForValue(aVal);
+        
+        if (xPixel < xScale.left || xPixel > xScale.right) return; // Jangan gambar di luar area
+
+        ctx.save();
+        ctx.setLineDash([6,6]);
+        ctx.strokeStyle = 'rgba(99,102,241,0.6)';
+        ctx.beginPath();
+        ctx.moveTo(xPixel, yScale.top);
+        ctx.lineTo(xPixel, yScale.bottom);
+        ctx.stroke();
+        ctx.restore();
+      }
+    };
+    Chart.register(verticalLine);
+
+    function renderGraph(fn, currentX) {
+      // [PERBAIKAN] lineData sekarang adalah array objek {x, y}
+      const lineData = generateChartData(fn);
+      
+      // [PERBAIKAN] Buat data titik merah sebagai array objek {x, y}
+      let currentY = null;
+      try { currentY = fn(currentX); } catch(e) {}
+      const pointData = [{
+          x: currentX,
+          y: isFinite(currentY) ? currentY : null
+      }];
+
+
+      const data = {
+        // labels: xs, // [DIHAPUS] Tidak perlu untuk sumbu linear
+        datasets: [
+          { data: lineData, borderColor: 'rgb(79,70,229)', tension: 0.2, spanGaps: true, borderWidth: 2, pointRadius: 0 }, // [PERBAIKAN] data: lineData
+          { data: pointData, showLine: false, pointRadius: 5, pointBackgroundColor: 'red' } // [PERBAIKAN] data: pointData
+        ]
+      };
+
+      const cfg = {
+        type: 'line',
+        data,
+        options: {
+          animation: { duration: 0 }, // [PERBAIKAN] 0ms untuk respons slider yang instan
+          parsing: false, // Benar, karena kita sudah menyediakan data {x, y}
+          scales: { x: { type: 'linear', min: -10, max: 10 }, y: { min: -10, max: 10, beginAtZero: false } },
+          plugins: { 
+            legend: { display: false },
+            tooltip: { // Tooltip yang lebih baik
+               callbacks: {
+                  label: (context) => `(${context.parsed.x.toFixed(2)}, ${context.parsed.y.toFixed(4)})`
+               }
+            }
+          },
+          interaction: { // Selalu tampilkan tooltip saat hover
+              intersect: false,
+              mode: 'index'
+          }
+        }
+      };
+
+      if (chart) chart.destroy();
+      chart = new Chart(chartCanvas, cfg);
+    }
+
+    // -----------------------------
+    // Algebraic steps generator (heuristic)
+    // -----------------------------
+    function algebraicStepsFor(expr, a) {
+      // offer human-readable steps for common patterns
+      if (/x\*x-4\)/.test(expr) || /x\^2-4/.test(expr) || expr.includes('x*x-4')) {
+        return ['Identifikasi bentuk 0/0', 'Faktorkan pembilang: x^2 - 4 = (x-2)(x+2)', 'Sederhanakan → f(x) = x + 2', `Substitusi x=${a} → ${a + 2}`];
+      }
+      if (expr.includes('sqrt(x)')) {
+        return ['Identifikasi bentuk 0/0', 'Rasionalisasikan: kalikan pembilang & penyebut dengan (√x + 2)', 'Sederhanakan untuk mendapatkan 1/(√x + 2)', `Substitusi x=${a} → ${1/(Math.sqrt(a)+2)}`];
+      }
+      if (expr.includes('sin(x)/x') || expr.includes('sin(x)/x')) {
+        return ['Gunakan limit dasar: lim sin(x)/x = 1', 'Bisa dibuktikan geometri atau deret Taylor'];
+      }
+      if (expr.includes('pow(2,x)') || expr.includes('2^x')) {
+        return ['Gunakan turunan atau deret: lim (2^x -1)/x = ln 2'];
+      }
+      // fallback
+      return ['Tidak ada langkah aljabar otomatis untuk fungsi ini. Coba analisis manual atau gunakan aproksimasi numerik.'];
+    }
+
+    // -----------------------------
+    // Update UI main function
+    // -----------------------------
+    function updateAll() {
+      const { fn, expr } = getCurrentFunction();
+      if (!fn) {
+        fxValue.textContent = '—';
+        algebraSteps.innerHTML = '<i>Fungsi tidak dikenali</i>';
+        return;
+      }
+
+      const currentX = parseFloat(xSlider.value);
+      xValue.textContent = currentX.toFixed(3);
+
+      let y = null;
+      try { y = fn(currentX); } catch(e) { y = NaN; }
+      
+      if (isFinite(y)) {
+          fxValue.textContent = y.toFixed(6);
+      } else if (isNaN(y)) {
+          fxValue.textContent = 'Tidak Terdefinisi';
+      } else {
+          fxValue.textContent = (y > 0 ? '+∞' : '-∞');
+      }
+
+      const a = parseFloat(aInput.value);
+      const approx = approxTwoSidedLimit(fn, a);
+      approxLimit.textContent = (approx === null ? 'Tidak dapat aproksimasi (divergen/∞)' : approx.toFixed(6));
+
+      // algebraic steps
+      const steps = algebraicStepsFor(expr, a);
+      algebraSteps.innerHTML = steps.map(s => `<div>• ${s}</div>`).join('');
+
+      // render graph
+      renderGraph(fn, currentX);
+    }
+
+    // attach handlers
+    exampleSelect.addEventListener('change', () => {
+      const sel = exampleSelect.value;
+      // if builtin mapping changed, ensure aInput default for common choices
+      if (sel.includes('x*x-4')) aInput.value = 2;
+      else if (sel.includes('sin')) aInput.value = 0;
+      else if (sel.includes('sqrt')) aInput.value = 4;
+      else if (sel.includes('3*x*x')) aInput.value = 1;
+      else if (sel.includes('pow(2,x)')) aInput.value = 0;
+      else if (sel.includes('tan(x)')) aInput.value = 0;
+      else if (sel.includes('1/x')) aInput.value = 0;
+
+      xSlider.value = aInput.value; // Pindahkan slider ke 'a' saat fungsi berubah
+      updateAll();
+    });
+    xSlider.addEventListener('input', updateAll);
+    aInput.addEventListener('change', ()=>{
+        xSlider.value = aInput.value; // Pindahkan slider ke 'a' saat 'a' diubah
+        updateAll();
+    });
+    resetBtn.addEventListener('click', () => { 
+        exampleSelect.value='(x*x-4)/(x-2)'; 
+        aInput.value=2; 
+        xSlider.value=2; 
+        updateAll(); 
+    });
+
+    // init
+    updateAll();
+
+    // -----------------------------
+    // Quiz generation & handling (DITINGKATKAN)
+    // -----------------------------
+    const genQs = document.getElementById('genQs');
+    const qsArea = document.getElementById('qsArea');
+    const levelSelect = document.getElementById('levelSelect');
+    const numQ = document.getElementById('numQ');
+
+    function randomInt(min, max) { return Math.floor(Math.random()*(max-min+1)) + min; }
+
+    function generateQuestion(level) {
+      if (level === 'easy') {
+        // easy: limits that are factorable
+        const a = randomInt(2,6);
+        const x = 'x';
+        const expr = `(x*x - ${a*a})/(x - ${a})`;
+        const answer = 2*a; // (x^2 - a^2)/(x-a) -> x+a -> substitusi a -> 2a
+        return { q: `\\( \\lim_{x \\to ${a}} \\frac{x^2 - ${a*a}}{x - ${a}} \\)`, expr, answer };
+      }
+      if (level === 'medium') {
+        // medium: sqrt or trig
+        const sel = Math.random() < 0.5 ? 'sqrt' : 'sin';
+        if (sel === 'sqrt') {
+          const a = randomInt(2,6);
+          const a_sq = a*a;
+          const expr = `(Math.sqrt(x) - ${a})/(x - ${a_sq})`;
+          const answer = 1/(2*a); // 1/(sqrt(x)+a) -> at x=a^2 gives 1/(a+a)=1/(2a)
+          return { q: `\\( \\lim_{x \\to ${a_sq}} \\frac{\\sqrt{x} - ${a}}{x - ${a_sq}} \\)`, expr, answer: 1/(2*a) };
+        } else {
+          const k = randomInt(2, 5);
+          return { q: `\\( \\lim_{x \\to 0} \\frac{\\sin(${k}x)}{x} \\)`, expr: `sin(${k}*x)/x`, answer: k };
+        }
+      }
+      // hard
+      const a = randomInt(2, 5);
+      return { q: `\\( \\lim_{x \\to 0} \\frac{${a}^x - 1}{x} \\)`, expr: `(pow(${a},x)-1)/x`, answer: Math.log(a) };
+    }
+
+    function renderQuestionCard(obj, idx) {
+      const div = document.createElement('div');
+      div.className = 'p-4 border rounded-md bg-white shadow-sm';
+      // [PERBAIKAN] Tampilkan soal dalam format LaTeX
+      div.innerHTML = `<div class="font-medium">Soal ${idx+1}</div><div class="mt-2 text-slate-700 text-lg">${obj.q}</div>`;
+      const choices = document.createElement('div');
+      choices.className = 'mt-3 space-y-2';
+
+      // [PERBAIKAN] Logika pembuatan opsi kuis yang lebih kuat
+      const correct_val = obj.answer;
+      // Format jawaban benar ke 3 angka penting jika desimal
+      const correct_str = (typeof correct_val === 'number' && correct_val % 1 !== 0) ? correct_val.toPrecision(3) : String(correct_val);
+
+      // Buat 2 distraktor unik
+      let distractors = new Set();
+      while (distractors.size < 2) {
+          let d_val;
+          if (typeof correct_val === 'number') {
+              if (correct_val === 0) d_val = (Math.random()*2 - 1);
+              else d_val = correct_val + (Math.random() * 2 - 1) * (Math.random() * correct_val + 0.5); // variasi
+          } else {
+              d_val = (Math.random()*10).toPrecision(3); // fallback
+          }
+          
+          let d_str = (typeof d_val === 'number' && d_val % 1 !== 0) ? d_val.toPrecision(3) : String(Math.round(d_val * 100) / 100); // format 2 desimal
+          if (d_str !== correct_str && d_str !== "0") { // Pastikan tidak sama
+              distractors.add(d_str);
+          }
+      }
+
+      const opts = [correct_str, ...distractors].sort(() => Math.random()-0.5);
+
+      opts.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'quiz-btn w-full text-left p-2 border rounded hover:bg-indigo-50 transition-colors duration-150';
+        btn.textContent = opt;
+        btn.addEventListener('click', () => {
+          const fb = div.querySelector('.feedback');
+          
+          // [PERBAIKAN] Bandingkan string yang sudah diformat
+          if (opt === correct_str) { 
+            fb.textContent = 'Benar!'; 
+            fb.className = 'feedback mt-2 text-emerald-700 font-medium'; 
+          } else { 
+            fb.textContent = `Salah — jawaban benar: ${correct_str}`; 
+            fb.className = 'feedback mt-2 text-red-600 font-medium'; 
+          }
+          // disable
+          choices.querySelectorAll('button').forEach(b => {
+              b.disabled = true;
+              b.classList.remove('hover:bg-indigo-50');
+              if (b.textContent === correct_str) {
+                  b.classList.add('bg-emerald-100', 'border-emerald-300');
+              } else if (b.textContent === opt) {
+                  b.classList.add('bg-red-100', 'border-red-300');
+              }
+          });
+        });
+        choices.appendChild(btn);
+      });
+      div.appendChild(choices);
+      const fb = document.createElement('div'); fb.className='feedback mt-2 text-sm'; div.appendChild(fb);
+      return div;
+    }
+
+    genQs.addEventListener('click', () => {
+      qsArea.innerHTML = '';
+      const lvl = levelSelect.value;
+      const count = Math.max(1, Math.min(10, Number(numQ.value) || 3));
+      for (let i=0;i<count;i++) {
+        const q = generateQuestion(lvl);
+        qsArea.appendChild(renderQuestionCard(q, i));
+      }
+      
+      // [BARU] Jika MathJax ada, render ulang. Jika tidak, abaikan.
+      if (typeof MathJax !== 'undefined') {
+          MathJax.typesetPromise([qsArea]).catch(function (err) { console.log('MathJax error: ' + err.message); });
+      }
+    });
+
+    // -----------------------------
+    // Export & utility handlers
+    // -----------------------------
+    const copyHtml = document.getElementById('copyHtml');
+    const exportQs = document.getElementById('exportQs');
+    const resetAll = document.getElementById('resetAll');
+
+    copyHtml.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(document.documentElement.outerHTML);
+        alert('HTML halaman disalin ke clipboard. Kamu bisa simpan ke file .html.');
+      } catch (e) { alert('Gagal menyalin: ' + e); }
+    });
+
+    exportQs.addEventListener('click', () => {
+      const cards = Array.from(qsArea.children).map((c, i) => {
+          const correctBtn = c.querySelector('button.bg-emerald-100');
+          return { 
+              soal: c.querySelector('.text-lg').textContent.trim(), 
+              jawaban_benar: correctBtn ? correctBtn.textContent : 'Belum dijawab',
+              level: levelSelect.value
+          }
+      });
+      if (cards.length === 0) {
+          alert('Generate soal terlebih dahulu sebelum mengekspor.');
+          return;
+      }
+      const blob = new Blob([JSON.stringify(cards, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href=url; a.download='soal_limit.json'; a.click(); URL.revokeObjectURL(url);
+    });
+
+    resetAll.addEventListener('click', () => { if (confirm('Reset semua pengaturan modul?')) location.reload(); });
+
+    // -----------------------------
+    // Small accessibility tweak: keyboard control for slider
+    // -----------------------------
+    xSlider.addEventListener('keydown', (e)=>{
+      const step = parseFloat(xSlider.step) || 0.01;
+      let v = parseFloat(xSlider.value);
+      if (e.key === 'ArrowLeft') { v -= step; xSlider.value = v; updateAll(); e.preventDefault(); }
+      if (e.key === 'ArrowRight') { v += step; xSlider.value = v; updateAll(); e.preventDefault(); }
+    });
+
+    // End of script
+  </script>
+  
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+</body>
+</html>
