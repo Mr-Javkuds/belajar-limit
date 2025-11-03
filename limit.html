@@ -15,6 +15,10 @@
     .card { border-radius: 1rem; }
     .muted { color: #6b7280 }
     pre.codeblock { background: #0f172a; color: #e6eef8; padding: 1rem; border-radius: .5rem; overflow:auto }
+    .solution { background: #f0fdf4; border: 1px solid #bbf7d0; padding: .75rem; border-radius: .5rem; margin-top: .75rem }
+    .solution h5 { font-weight: 600; color: #065f46; }
+    .solution ol { margin-left: 1rem; color: #064e3b; }
+    .reveal-btn { background: transparent; border: 1px dashed #9ca3af; padding: .35rem .6rem; border-radius: .375rem; cursor: pointer; color: #374151; }
     /* Accessibility focus ring */
     :focus { outline: 3px solid rgba(79,70,229,0.18); outline-offset: 3px; }
   </style>
@@ -159,7 +163,7 @@
     <section class="bg-white p-6 rounded-2xl shadow card mb-6">
       <h2 class="text-2xl font-semibold text-indigo-600">Latihan & Kuis Otomatis</h2>
 
-      <p class="text-slate-700 mt-2">Pilih level soal, lalu tekan "Generate" untuk membuat soal acak. Sistem akan memeriksa jawaban dan memberikan penjelasan singkat.</p>
+      <p class="text-slate-700 mt-2">Pilih level soal, lalu tekan "Generate" untuk membuat soal acak. Sistem akan memeriksa jawaban, memberikan penjelasan singkat, dan menampilkan langkah penyelesaian setelah jawaban diberikan.</p>
 
       <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
         <div>
@@ -377,6 +381,91 @@
     }
 
     // -----------------------------
+    // Solution steps generator for quiz items
+    // -----------------------------
+    function generateSolutionSteps(obj) {
+      // obj contains: expr, answer, q (LaTeX string)
+      // return object { title, steps: [..], final }
+      const expr = obj.expr || '';
+      // Easy patterns: factorable (x^2 - a^2)/(x-a)
+      if (/x\*x - \d+\)/.test(expr) || /x\*x - \d+\)/.test(expr)) {
+        // extract a
+        const m = expr.match(/x\*x - (\d+)\)/);
+        if (m) {
+          const a_sq = Number(m[1]);
+          const a = Math.round(Math.sqrt(a_sq));
+          const steps = [
+            `Substitusi langsung menghasilkan bentuk 0/0 -> membutuhkan faktorisasi.`,
+            `Faktorkan: \\(x^2 - ${a_sq} = (x - ${a})(x + ${a})\\).`,
+            `Sederhanakan: \\(\\frac{(x - ${a})(x + ${a})}{x - ${a}} = x + ${a}\\).`,
+            `Substitusi: \\(x = ${a} \\Rightarrow ${a} + ${a} = ${2*a}\\).`
+          ];
+          return { title: 'Penyelesaian (Faktorisasi)', steps, final: String(2*a) };
+        }
+      }
+
+      // sqrt pattern: (Math.sqrt(x) - a)/(x - a^2)
+      if (expr.includes('sqrt') && /Math.sqrt\(x\)\s*-\s*\d+/.test(expr)) {
+        const m = expr.match(/Math\.sqrt\(x\)\s*-\s*(\d+)/);
+        if (m) {
+          const a = Number(m[1]);
+          const steps = [
+            `Substitusi memberikan bentuk 0/0 → rasionalisasi diperlukan.`,
+            `Kalikan pembilang & penyebut dengan (\\(\\sqrt{x} + ${a}\\)).`,
+            `Sederhanakan dan peroleh \\(\\frac{1}{\\sqrt{x} + ${a}}\\).`,
+            `Substitusi \\(x = ${a*a}\\): \\(\\frac{1}{${a} + ${a}} = \\frac{1}{2${a}}\\).`
+          ];
+          return { title: 'Penyelesaian (Rasionalisasi)', steps, final: (1/(2*a)).toPrecision(6) };
+        }
+      }
+
+      // sin(kx)/x pattern
+      if (expr.includes('sin(') && expr.includes('/x')) {
+        const m = expr.match(/sin\((\d+)\*x\)\/x/);
+        if (m) {
+          const k = Number(m[1]);
+          const steps = [
+            `Gunakan limit dasar: \\(\\lim_{x\\to 0} \\frac{\\sin x}{x} = 1\\).`,
+            `Dengan substitusi: \\(\\lim_{x\\to 0} \\frac{\\sin(kx)}{x} = k \\cdot \\lim_{x\\to 0} \\frac{\\sin(kx)}{kx} = k\\).`
+          ];
+          return { title: 'Penyelesaian (Trigonometri)', steps, final: String(k) };
+        } else {
+          // general sin(x)/x
+          const steps = [
+            `Gunakan limit dasar: \\(\\lim_{x\\to 0} \\frac{\\sin x}{x} = 1\\).`,
+            `Jika bentuknya \\(\\frac{\\sin x}{x}\\), hasilnya 1.`
+          ];
+          return { title: 'Penyelesaian (Trigonometri)', steps, final: String(obj.answer) };
+        }
+      }
+
+      // exponential: (a^x -1)/x -> ln a
+      if (expr.includes('pow(') || expr.includes('^x')) {
+        const m = expr.match(/pow\((\d+),x\)-1/);
+        if (m) {
+          const a = Number(m[1]);
+          const steps = [
+            `Gunakan limit definisi turunan: \\(\\lim_{x\\to 0} \\frac{a^x - 1}{x} = \\ln a\\).`,
+            `Sehingga hasilnya \\(\\ln(${a})\\).`
+          ];
+          return { title: 'Penyelesaian (Eksponensial)', steps, final: String(Math.log(a).toPrecision(6)) };
+        }
+      }
+
+      // fallback generic explanation
+      return {
+        title: 'Penjelasan (Pendekatan Numerik / Analitis)',
+        steps: [
+          'Periksa bentuk substitusi untuk menentukan bentuk tak tentu.',
+          'Jika 0/0: coba faktorisasi atau rasionalisasi.',
+          'Jika melibatkan sin atau tan: gunakan limit dasar sin(x)/x = 1 atau identitas trigonometri.',
+          'Jika bentuk tak mudah: gunakan aproksimasi numerik atau konsep turunan.'
+        ],
+        final: String(obj.answer)
+      };
+    }
+
+    // -----------------------------
     // Update UI main function
     // -----------------------------
     function updateAll() {
@@ -457,10 +546,10 @@
       if (level === 'easy') {
         // easy: limits that are factorable
         const a = randomInt(2,6);
-        const x = 'x';
         const expr = `(x*x - ${a*a})/(x - ${a})`;
         const answer = 2*a; // (x^2 - a^2)/(x-a) -> x+a -> substitusi a -> 2a
-        return { q: `\\( \\lim_{x \\to ${a}} \\frac{x^2 - ${a*a}}{x - ${a}} \\)`, expr, answer };
+        // show LaTeX q
+        return { q: `\\( \\lim_{x \\to ${a}} \\frac{x^2 - ${a*a}}{x - ${a}} \\)`, expr, answer, type: 'factor' };
       }
       if (level === 'medium') {
         // medium: sqrt or trig
@@ -470,42 +559,64 @@
           const a_sq = a*a;
           const expr = `(Math.sqrt(x) - ${a})/(x - ${a_sq})`;
           const answer = 1/(2*a); // 1/(sqrt(x)+a) -> at x=a^2 gives 1/(a+a)=1/(2a)
-          return { q: `\\( \\lim_{x \\to ${a_sq}} \\frac{\\sqrt{x} - ${a}}{x - ${a_sq}} \\)`, expr, answer: 1/(2*a) };
+          return { q: `\\( \\lim_{x \\to ${a_sq}} \\frac{\\sqrt{x} - ${a}}{x - ${a_sq}} \\)`, expr, answer, type: 'sqrt' };
         } else {
           const k = randomInt(2, 5);
-          return { q: `\\( \\lim_{x \\to 0} \\frac{\\sin(${k}x)}{x} \\)`, expr: `sin(${k}*x)/x`, answer: k };
+          return { q: `\\( \\lim_{x \\to 0} \\frac{\\sin(${k}x)}{x} \\)`, expr: `sin(${k}*x)/x`, answer: k, type: 'trig' };
         }
       }
       // hard
       const a = randomInt(2, 5);
-      return { q: `\\( \\lim_{x \\to 0} \\frac{${a}^x - 1}{x} \\)`, expr: `(pow(${a},x)-1)/x`, answer: Math.log(a) };
+      return { q: `\\( \\lim_{x \\to 0} \\frac{${a}^x - 1}{x} \\)`, expr: `(pow(${a},x)-1)/x`, answer: Math.log(a), type: 'exp' };
     }
 
     function renderQuestionCard(obj, idx) {
       const div = document.createElement('div');
       div.className = 'p-4 border rounded-md bg-white shadow-sm';
-      // [PERBAIKAN] Tampilkan soal dalam format LaTeX
-      div.innerHTML = `<div class="font-medium">Soal ${idx+1}</div><div class="mt-2 text-slate-700 text-lg">${obj.q}</div>`;
+
+      // Soal title + latex area
+      const title = document.createElement('div');
+      title.className = 'font-medium';
+      title.textContent = `Soal ${idx+1}`;
+      const qtext = document.createElement('div');
+      qtext.className = 'mt-2 text-slate-700 text-lg';
+      qtext.innerHTML = obj.q;
+
+      // choices container
       const choices = document.createElement('div');
       choices.className = 'mt-3 space-y-2';
 
-      // [PERBAIKAN] Logika pembuatan opsi kuis yang lebih kuat
-      const correct_val = obj.answer;
-      // Format jawaban benar ke 3 angka penting jika desimal
-      const correct_str = (typeof correct_val === 'number' && correct_val % 1 !== 0) ? correct_val.toPrecision(3) : String(correct_val);
+      // feedback & solution area
+      const fb = document.createElement('div');
+      fb.className = 'feedback mt-2 text-sm';
 
-      // Buat 2 distraktor unik
+      // solution container (hidden initially)
+      const solWrap = document.createElement('div');
+      solWrap.className = 'solution hidden';
+      solWrap.setAttribute('aria-hidden', 'true');
+
+      // add reveal button (only shown after wrong answer)
+      const revealBtn = document.createElement('button');
+      revealBtn.className = 'reveal-btn mt-2';
+      revealBtn.textContent = 'Tampilkan Solusi';
+      revealBtn.style.display = 'none';
+
+      // Format correct answer
+      const correct_val = obj.answer;
+      const correct_str = (typeof correct_val === 'number' && correct_val % 1 !== 0) ? correct_val.toPrecision(6) : String(correct_val);
+
+      // generate distractors
       let distractors = new Set();
       while (distractors.size < 2) {
           let d_val;
           if (typeof correct_val === 'number') {
               if (correct_val === 0) d_val = (Math.random()*2 - 1);
-              else d_val = correct_val + (Math.random() * 2 - 1) * (Math.random() * correct_val + 0.5); // variasi
+              else d_val = correct_val + (Math.random() * 2 - 1) * (Math.random() * Math.abs(correct_val) + 0.5); // variasi
           } else {
               d_val = (Math.random()*10).toPrecision(3); // fallback
           }
           
-          let d_str = (typeof d_val === 'number' && d_val % 1 !== 0) ? d_val.toPrecision(3) : String(Math.round(d_val * 100) / 100); // format 2 desimal
+          let d_str = (typeof d_val === 'number' && d_val % 1 !== 0) ? d_val.toPrecision(6) : String(Math.round(d_val * 100) / 100);
           if (d_str !== correct_str && d_str !== "0") { // Pastikan tidak sama
               distractors.add(d_str);
           }
@@ -518,32 +629,83 @@
         btn.className = 'quiz-btn w-full text-left p-2 border rounded hover:bg-indigo-50 transition-colors duration-150';
         btn.textContent = opt;
         btn.addEventListener('click', () => {
-          const fb = div.querySelector('.feedback');
-          
-          // [PERBAIKAN] Bandingkan string yang sudah diformat
-          if (opt === correct_str) { 
-            fb.textContent = 'Benar!'; 
-            fb.className = 'feedback mt-2 text-emerald-700 font-medium'; 
-          } else { 
-            fb.textContent = `Salah — jawaban benar: ${correct_str}`; 
-            fb.className = 'feedback mt-2 text-red-600 font-medium'; 
-          }
-          // disable
+          // disable all choices
           choices.querySelectorAll('button').forEach(b => {
               b.disabled = true;
               b.classList.remove('hover:bg-indigo-50');
               if (b.textContent === correct_str) {
                   b.classList.add('bg-emerald-100', 'border-emerald-300');
-              } else if (b.textContent === opt) {
-                  b.classList.add('bg-red-100', 'border-red-300');
               }
           });
+
+          // correct?
+          if (opt === correct_str) {
+            fb.textContent = 'Benar!';
+            fb.className = 'feedback mt-2 text-emerald-700 font-medium';
+            // show solution automatically
+            showSolutionFor(obj, solWrap);
+          } else {
+            fb.textContent = `Salah — jawaban benar: ${correct_str}`;
+            fb.className = 'feedback mt-2 text-red-600 font-medium';
+            // highlight chosen wrong answer
+            const chosen = Array.from(choices.querySelectorAll('button')).find(b => b.textContent === opt);
+            if (chosen) chosen.classList.add('bg-red-100', 'border-red-300');
+            // allow user to reveal solution
+            revealBtn.style.display = 'inline-block';
+          }
+
+          // ensure MathJax re-typesets after feedback/solution shown
+          if (typeof MathJax !== 'undefined') {
+            MathJax.typesetPromise([div]).catch(err => console.warn('MathJax error:', err));
+          }
         });
         choices.appendChild(btn);
       });
+
+      // reveal button handler: show solution when clicked
+      revealBtn.addEventListener('click', () => {
+        showSolutionFor(obj, solWrap);
+        revealBtn.style.display = 'none';
+        if (typeof MathJax !== 'undefined') {
+          MathJax.typesetPromise([div]).catch(err => console.warn('MathJax error:', err));
+        }
+      });
+
+      // Build card
+      div.appendChild(title);
+      div.appendChild(qtext);
       div.appendChild(choices);
-      const fb = document.createElement('div'); fb.className='feedback mt-2 text-sm'; div.appendChild(fb);
+      div.appendChild(fb);
+      div.appendChild(revealBtn);
+      div.appendChild(solWrap);
+
+      // prepare solution content hidden (populated on demand)
       return div;
+    }
+
+    // Show solution in a container for given question object
+    function showSolutionFor(obj, solWrap) {
+      solWrap.innerHTML = ''; // clear
+      const sol = generateSolutionSteps(obj);
+      const h5 = document.createElement('h5');
+      h5.textContent = sol.title;
+      const ol = document.createElement('ol');
+      ol.className = 'list-decimal ml-4';
+      sol.steps.forEach(s => {
+        const li = document.createElement('li');
+        // allow LaTeX inside by using MathJax later
+        li.innerHTML = s;
+        ol.appendChild(li);
+      });
+      const final = document.createElement('div');
+      final.className = 'mt-2 font-semibold';
+      final.innerHTML = `Hasil akhir: <span class="text-emerald-700 font-bold">${sol.final}</span>`;
+      solWrap.appendChild(h5);
+      solWrap.appendChild(ol);
+      solWrap.appendChild(final);
+      solWrap.classList.remove('hidden');
+      solWrap.classList.add('float-up');
+      solWrap.setAttribute('aria-hidden', 'false');
     }
 
     genQs.addEventListener('click', () => {
@@ -578,10 +740,12 @@
     exportQs.addEventListener('click', () => {
       const cards = Array.from(qsArea.children).map((c, i) => {
           const correctBtn = c.querySelector('button.bg-emerald-100');
+          const solutionElem = c.querySelector('.solution');
           return { 
-              soal: c.querySelector('.text-lg').textContent.trim(), 
+              soal: c.querySelector('.text-lg') ? c.querySelector('.text-lg').textContent.trim() : (c.querySelector('.mt-2') ? c.querySelector('.mt-2').textContent.trim() : ''),
               jawaban_benar: correctBtn ? correctBtn.textContent : 'Belum dijawab',
-              level: levelSelect.value
+              level: levelSelect.value,
+              solved: solutionElem && !solutionElem.classList.contains('hidden') ? true : false
           }
       });
       if (cards.length === 0) {
